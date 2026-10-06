@@ -25,6 +25,7 @@ export default function RootLayout() {
           headerShown: false,
         }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="overview" />
         <Stack.Screen name="services" />
         <Stack.Screen name="service-detail" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="logs" />

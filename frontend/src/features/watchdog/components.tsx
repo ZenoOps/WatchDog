@@ -37,7 +37,7 @@ const icons = {
 } satisfies Record<string, SymbolName>;
 
 const tabItems: { label: string; href: string; icon: SymbolName }[] = [
-  { label: 'Overview', href: '/', icon: icons.overview },
+  { label: 'Overview', href: '/overview', icon: icons.overview },
   { label: 'Services', href: '/services', icon: icons.services },
   { label: 'Logs', href: '/logs', icon: icons.logs },
   { label: 'Traces', href: '/traces', icon: icons.traces },
