@@ -176,7 +176,8 @@ export function WatchDogScreen({
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="always"
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}>
         <View style={styles.contentWidth}>
@@ -256,6 +257,7 @@ export function SearchInput({
         placeholder={placeholder}
         placeholderTextColor={colors.textDim}
         selectionColor={colors.primary}
+        showSoftInputOnFocus
         style={styles.searchInput}
         value={value}
       />

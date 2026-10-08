@@ -65,6 +65,7 @@ function Field({
           autoComplete={autoComplete}
           autoCorrect={false}
           keyboardType={autoComplete === 'email' ? 'email-address' : 'default'}
+          multiline={false}
           onBlur={() => setFocused(false)}
           onChangeText={onChangeText}
           onFocus={() => setFocused(true)}
@@ -72,6 +73,7 @@ function Field({
           placeholderTextColor={colors.textDim}
           secureTextEntry={passwordField && !revealed}
           selectionColor={colors.primary}
+          showSoftInputOnFocus
           style={styles.input}
           value={value}
         />
@@ -148,7 +150,8 @@ export function AuthScreen() {
         <ScrollView
           alwaysBounceVertical={false}
           contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
           showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
             <View style={styles.brandBlock}>
@@ -542,17 +545,14 @@ const styles = StyleSheet.create({
   },
   inputShellFocused: {
     borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
   },
   input: {
     flex: 1,
-    height: '100%',
+    minHeight: 46,
     color: colors.text,
     fontSize: 14,
     paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   showPassword: {
     color: colors.primary,

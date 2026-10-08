@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.zeno.watchdog",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,13 +29,22 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#080C12"
+          "backgroundColor": "#080C12",
+          "image": "./assets/images/splash-icon.png"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a77b0b89-19e3-43e9-b687-26ae4b1fef96"
+      }
     }
   }
 }
