@@ -13,12 +13,26 @@ WatchDog/
 
 Repository-level configuration, contributor instructions, and licensing remain at the root.
 
+## Run the backend
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+The backend uses SQLite and creates its local database under `backend/data/`.
+
 ## Run the mobile application
 
 ```bash
 cd frontend
 npm install
-npx expo start
+cp .env.example .env
+npx expo start --dev-client
 ```
 
-The backend and infrastructure directories are intentionally placeholders until those layers are implemented.
+Set `EXPO_PUBLIC_API_URL` in `frontend/.env` to an address the phone can reach, such as the development computer's LAN IP and port `4000`.
+
+The infrastructure directory remains reserved for future deployment and observability services. SQLite does not require local infrastructure configuration.
