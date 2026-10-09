@@ -46,3 +46,9 @@ example
 # generated native folders
 /frontend/ios
 /frontend/android
+
+# local WatchDog backend data
+/backend/data/
+/backend/*.db
+/backend/*.db-shm
+/backend/*.db-wal
