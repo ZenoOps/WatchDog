@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ApiError } from '@/features/auth/api';
+import { useAuth } from '@/features/auth/auth-context';
+
 import { watchdogColors as colors, watchdogRadii as radii } from './theme';
 
 type AuthMode = 'login' | 'signup';
@@ -44,6 +47,7 @@ function Field({
   placeholder,
   secureTextEntry,
   autoComplete,
+  disabled,
 }: {
   label: string;
   value: string;
@@ -51,6 +55,7 @@ function Field({
   placeholder: string;
   secureTextEntry?: boolean;
   autoComplete: 'email' | 'name' | 'current-password' | 'new-password';
+  disabled?: boolean;
 }) {
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -64,6 +69,7 @@ function Field({
           autoCapitalize={autoComplete === 'name' ? 'words' : 'none'}
           autoComplete={autoComplete}
           autoCorrect={false}
+          editable={!disabled}
           keyboardType={autoComplete === 'email' ? 'email-address' : 'default'}
           multiline={false}
           onBlur={() => setFocused(false)}
@@ -93,6 +99,7 @@ function Field({
 
 export function AuthScreen() {
   const router = useRouter();
+  const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -100,18 +107,14 @@ export function AuthScreen() {
   const [confirmation, setConfirmation] = useState('');
   const [remember, setRemember] = useState(true);
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const switchMode = (nextMode: AuthMode) => {
     setMode(nextMode);
     setMessage('');
   };
 
-  const enterDemo = () => {
-    setMessage('');
-    router.replace('/overview' as Href);
-  };
-
-  const submit = () => {
+  const submit = async () => {
     const normalizedEmail = email.trim();
 
     if (mode === 'signup' && !name.trim()) {
@@ -122,8 +125,8 @@ export function AuthScreen() {
       setMessage('Enter a valid work email.');
       return;
     }
-    if (password.length < 6) {
-      setMessage('Password must contain at least 6 characters.');
+    if (password.length < 8) {
+      setMessage('Password must contain at least 8 characters.');
       return;
     }
     if (mode === 'signup' && password !== confirmation) {
@@ -131,7 +134,20 @@ export function AuthScreen() {
       return;
     }
 
-    enterDemo();
+    setSubmitting(true);
+    setMessage('');
+    try {
+      if (mode === 'signup') {
+        await signUp({ name: name.trim(), email: normalizedEmail, password });
+      } else {
+        await signIn({ email: normalizedEmail, password, remember });
+      }
+      router.replace('/overview' as Href);
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : 'WatchDog could not authenticate you.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -185,6 +201,7 @@ export function AuthScreen() {
                     <Pressable
                       accessibilityRole="tab"
                       accessibilityState={{ selected: active }}
+                      disabled={submitting}
                       key={item}
                       onPress={() => switchMode(item)}
                       style={[styles.modeTab, active && styles.modeTabActive]}>
@@ -200,6 +217,7 @@ export function AuthScreen() {
                 {mode === 'signup' ? (
                   <Field
                     autoComplete="name"
+                    disabled={submitting}
                     label="Full name"
                     onChangeText={setName}
                     placeholder="Alex Morgan"
@@ -208,6 +226,7 @@ export function AuthScreen() {
                 ) : null}
                 <Field
                   autoComplete="email"
+                  disabled={submitting}
                   label="Work email"
                   onChangeText={setEmail}
                   placeholder="you@company.com"
@@ -215,6 +234,7 @@ export function AuthScreen() {
                 />
                 <Field
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  disabled={submitting}
                   label="Password"
                   onChangeText={setPassword}
                   placeholder="Enter your password"
@@ -224,6 +244,7 @@ export function AuthScreen() {
                 {mode === 'signup' ? (
                   <Field
                     autoComplete="new-password"
+                    disabled={submitting}
                     label="Confirm password"
                     onChangeText={setConfirmation}
                     placeholder="Repeat your password"
@@ -237,6 +258,7 @@ export function AuthScreen() {
                     <Pressable
                       accessibilityRole="checkbox"
                       accessibilityState={{ checked: remember }}
+                      disabled={submitting}
                       onPress={() => setRemember((current) => !current)}
                       style={styles.rememberButton}>
                       <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
@@ -254,10 +276,21 @@ export function AuthScreen() {
 
                 <Pressable
                   accessibilityRole="button"
-                  onPress={submit}
-                  style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
+                  disabled={submitting}
+                  onPress={() => void submit()}
+                  style={({ pressed }) => [
+                    styles.primaryButton,
+                    submitting && styles.disabled,
+                    pressed && !submitting && styles.pressed,
+                  ]}>
                   <Text style={styles.primaryButtonText}>
-                    {mode === 'login' ? 'Log in to WatchDog' : 'Create WatchDog account'}
+                    {submitting
+                      ? mode === 'login'
+                        ? 'Signing in…'
+                        : 'Creating account…'
+                      : mode === 'login'
+                        ? 'Log in to WatchDog'
+                        : 'Create WatchDog account'}
                   </Text>
                   <Text style={styles.buttonArrow}>→</Text>
                 </Pressable>
@@ -270,7 +303,8 @@ export function AuthScreen() {
 
                 <Pressable
                   accessibilityRole="button"
-                  onPress={enterDemo}
+                  disabled={submitting}
+                  onPress={() => setMessage('SSO will be connected in a later backend milestone.')}
                   style={({ pressed }) => [styles.ssoButton, pressed && styles.pressed]}>
                   <View style={styles.ssoIcon}>
                     <Text style={styles.ssoIconText}>S</Text>
@@ -280,7 +314,9 @@ export function AuthScreen() {
               </View>
             </View>
 
-            <Text style={styles.demoNote}>UI prototype · Any valid-looking credentials will continue to the dashboard.</Text>
+            <Text style={styles.demoNote}>
+              The first signup creates the only WatchDog owner account. Additional signups are disabled.
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -680,6 +716,9 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.72,
     transform: [{ scale: 0.99 }],
+  },
+  disabled: {
+    opacity: 0.58,
   },
   demoNote: {
     color: colors.textDim,

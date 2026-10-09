@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/features/auth/auth-context';
+
 import { watchdogColors as colors, watchdogRadii as radii } from './theme';
 
 type SymbolName = ComponentProps<typeof SymbolView>['name'];
@@ -147,6 +149,8 @@ export function WatchDogScreen({
   showTabs?: boolean;
   showTimeControls?: boolean;
 }) {
+  const { signOut, user } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
   const [timeRange, setTimeRange] = useState<'30m' | '1h' | '6h'>('30m');
   const ranges: Record<typeof timeRange, string> = {
     '30m': 'Last 30 minutes',
@@ -158,6 +162,15 @@ export function WatchDogScreen({
     setTimeRange((current) => (current === '30m' ? '1h' : current === '1h' ? '6h' : '30m'));
   };
 
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <StatusBar style="light" />
@@ -166,11 +179,23 @@ export function WatchDogScreen({
           <BrandMark />
           <AppText variant="heading">WatchDog</AppText>
         </View>
-        <View style={styles.environmentChip}>
-          <View style={styles.environmentDot} />
-          <AppText variant="caption" style={styles.environmentText}>
-            Production
-          </AppText>
+        <View style={styles.headerActions}>
+          <View style={styles.environmentChip}>
+            <View style={styles.environmentDot} />
+            <AppText variant="caption" style={styles.environmentText}>
+              Production
+            </AppText>
+          </View>
+          <Pressable
+            accessibilityLabel={`Sign out ${user?.email ?? 'of WatchDog'}`}
+            accessibilityRole="button"
+            disabled={signingOut}
+            onPress={() => void handleSignOut()}
+            style={({ pressed }) => [styles.signOutButton, pressed && styles.pressed]}>
+            <AppText variant="caption" style={styles.signOutText}>
+              {signingOut ? 'Wait…' : 'Sign out'}
+            </AppText>
+          </Pressable>
         </View>
       </View>
 
@@ -451,6 +476,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 9,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
   brandMark: {
     width: 24,
     height: 24,
@@ -497,6 +527,19 @@ const styles = StyleSheet.create({
   },
   environmentText: {
     color: colors.text,
+  },
+  signOutButton: {
+    minHeight: 30,
+    paddingHorizontal: 8,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutText: {
+    color: colors.textMuted,
+    fontSize: 10,
   },
   text: {
     color: colors.text,
